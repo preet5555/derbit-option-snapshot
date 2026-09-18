@@ -1,0 +1,42 @@
+name: Deribit Options Snapshot
+
+on:
+  schedule:
+    # 07:45 UTC daily — 15 minutes before Deribit's 08:00 UTC expiry.
+    # GitHub's scheduled runs are best-effort and can occasionally lag by
+    # several minutes under platform load. A 15-minute buffer (instead of 5)
+    # gives much more margin so a delayed run still lands before expiry.
+    - cron: '45 7 * * *'
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab to test
+
+permissions:
+  contents: write   # needed so the workflow can commit the screenshot back to the repo
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install headless browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Take snapshot
+        run: node snapshot.js
+
+      - name: Commit snapshot to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add snapshots/*.png
+          git commit -m "Snapshot $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "Nothing to commit"
+          git push

@@ -1,0 +1,12 @@
+{
+  "name": "deribit-snapshot",
+  "version": "1.0.0",
+  "description": "Automated daily screenshots of the Deribit options page before expiry.",
+  "main": "snapshot.js",
+  "scripts": {
+    "start": "node snapshot.js"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  }
+}
