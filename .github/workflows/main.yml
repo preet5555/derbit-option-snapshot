@@ -2,8 +2,12 @@ name: Deribit Options Snapshot
 
 on:
   schedule:
-    # 07:45 UTC daily (1:15 PM IST) — 15 minutes before Deribit's 08:00 UTC expiry.
+    # 07:45 UTC daily (1:15 PM IST) — 15 minutes BEFORE Deribit's 08:00 UTC expiry.
     - cron: '45 7 * * *'
+    # 08:05 UTC daily (1:35 PM IST) — 5 minutes AFTER expiry, once the new
+    # day's option chain has rolled over. Gives you a fresh "start of day"
+    # snapshot for before/after comparison.
+    - cron: '5 8 * * *'
   workflow_dispatch: {}   # lets you trigger it manually from the Actions tab to test
 
 permissions:
@@ -15,6 +19,9 @@ jobs:
     # calls Deribit's public data API (not geo-blocked) and screenshots our
     # own locally-generated HTML file, never the real deribit.com website.
     runs-on: ubuntu-latest
+    env:
+      # Labels the output filename so you can tell the two daily runs apart.
+      SNAPSHOT_LABEL: ${{ github.event.schedule == '45 7 * * *' && 'pre-expiry' || github.event.schedule == '5 8 * * *' && 'post-expiry' || 'manual' }}
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
