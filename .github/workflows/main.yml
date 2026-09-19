@@ -2,10 +2,7 @@ name: Deribit Options Snapshot
 
 on:
   schedule:
-    # 07:45 UTC daily — 15 minutes before Deribit's 08:00 UTC expiry.
-    # GitHub's scheduled runs are best-effort and can occasionally lag by
-    # several minutes under platform load. A 15-minute buffer (instead of 5)
-    # gives much more margin so a delayed run still lands before expiry.
+    # 07:45 UTC daily (1:15 PM IST) — 15 minutes before Deribit's 08:00 UTC expiry.
     - cron: '45 7 * * *'
   workflow_dispatch: {}   # lets you trigger it manually from the Actions tab to test
 
@@ -14,6 +11,9 @@ permissions:
 
 jobs:
   snapshot:
+    # Runs on GitHub's normal free servers — safe now, since this script only
+    # calls Deribit's public data API (not geo-blocked) and screenshots our
+    # own locally-generated HTML file, never the real deribit.com website.
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
