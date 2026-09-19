@@ -46,9 +46,15 @@ the row closest to the live BTC price highlighted, similar in spirit to the
 real Deribit layout.
 
 ## 6. Let the schedule run
-From now on, every day at **07:45 UTC (1:15 PM IST)** — 15 minutes before
-Deribit's 08:00 UTC expiry — GitHub automatically fetches fresh data and
-commits a new snapshot image. No further action needed.
+From now on, GitHub takes **two snapshots every day**, automatically:
+- **07:45 UTC (1:15 PM IST)** — "pre-expiry" — 15 minutes before that day's
+  08:00 UTC expiry, capturing the chain right before it rolls over.
+- **08:05 UTC (1:35 PM IST)** — "post-expiry" — 5 minutes after expiry,
+  capturing the fresh new day's chain right after rollover.
+
+Both land in the `snapshots/` folder with `pre-expiry` or `post-expiry` in
+the filename (and shown on the image itself), so you can directly compare
+the chain right before and right after each day's expiry for analysis.
 
 ## Notes
 - The script currently snapshots the **nearest upcoming expiry** each day.
