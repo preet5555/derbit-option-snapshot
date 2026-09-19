@@ -1,64 +1,64 @@
-# Deribit Options Snapshot — Free Setup (GitHub Actions)
+# Deribit Options Snapshot — API Data + Styled Screenshot (Free, No Geo-Block)
 
-No server needed. GitHub runs the script on a schedule for free and saves
-the screenshot into your own repo.
+This version never loads the real Deribit website. Instead it:
+1. Pulls live BTC option chain data from **Deribit's public API**
+   (`api.deribit.com`-style endpoints — plain data, not the trading platform,
+   so it isn't subject to the regional trading restriction).
+2. Renders that data into a **locally-built HTML page** styled to look like
+   the Deribit options table (dark theme, calls | strike | puts layout).
+3. Screenshots that local HTML file with a headless browser.
 
-## 1. Create a GitHub repo
-- Go to github.com → New repository (public is easiest, or private — both
-  work, private just uses your monthly free-minutes quota instead of
-  unlimited public quota).
-- Clone it locally, or just use GitHub's "Upload files" button in the browser.
+Because step 3 only opens a file on the runner's own disk — never
+`www.deribit.com` — the "Unsupported currency" geo-block never has a chance
+to trigger. This runs perfectly fine on GitHub's free hosted servers. No
+self-hosted PC, no proxy, no third party needed.
 
-## 2. Add these files to the repo (same folder structure)
+## 1. Create a GitHub repo (skip if you already have one from before)
+Public or private both work — public gets unlimited free Actions minutes,
+private gets 2,000 free minutes/month (a daily ~2 min job easily fits).
+
+## 2. Upload these files, keeping the folder structure
 ```
 your-repo/
 ├── snapshot.js
 ├── package.json
 └── .github/
     └── workflows/
-        └── snapshot.yml
+        └── main.yml
 ```
-Upload/commit `snapshot.js`, `package.json`, and the `.github/workflows/snapshot.yml`
-file exactly as-is, keeping that folder path — GitHub only recognizes workflows
-placed at `.github/workflows/`.
+Use "Create new file" and type the full path `.github/workflows/main.yml`
+directly into the filename box so GitHub creates the folders correctly
+(see earlier troubleshooting notes below if this goes wrong again).
 
-## 3. Enable Actions (usually on by default)
-Go to your repo → **Settings → Actions → General** → make sure "Allow all
-actions" is selected, and under **Workflow permissions** select
-**"Read and write permissions"** (needed so the job can commit the screenshot
-back into the repo).
+## 3. Turn on write permissions for Actions
+Repo → **Settings → Actions → General → Workflow permissions** → select
+**"Read and write permissions"** → Save.
 
-## 4. Test it manually first
-Go to your repo → **Actions** tab → click **"Deribit Options Snapshot"** in
-the left sidebar → **"Run workflow"** button → Run. Wait ~2 minutes, then
-check the run log. If it succeeds, a `snapshots/` folder with a `.png` will
-appear in your repo automatically (refresh the repo page).
+## 4. Test it manually
+**Actions** tab → **Deribit Options Snapshot** → **Run workflow** → wait
+~1-2 minutes → check for a green checkmark.
 
-## 5. Let the schedule take over
-That's it — no further action needed. Every day at **07:45 UTC** (15 minutes
-before Deribit's 08:00 UTC expiry), GitHub spins up a temporary machine, runs
-the script, and commits the new screenshot to your repo.
+## 5. Check the result
+Refresh the repo → open the new file inside the `snapshots/` folder. It
+should show a dark-themed table with the current nearest-expiry BTC option
+chain — strikes in the center, calls on the left, puts on the right, with
+the row closest to the live BTC price highlighted, similar in spirit to the
+real Deribit layout.
 
-> Note: GitHub's scheduled workflows are not military-precise — under heavy
-> platform load, runs can be delayed by a few minutes. A 15-minute buffer
-> gives good margin so a delayed run still lands well before expiry. If you
-> ever need sub-minute precision, a real always-on server (cron) is more
-> reliable than free GitHub Actions.
+## 6. Let the schedule run
+From now on, every day at **07:45 UTC (1:15 PM IST)** — 15 minutes before
+Deribit's 08:00 UTC expiry — GitHub automatically fetches fresh data and
+commits a new snapshot image. No further action needed.
 
-## 6. Viewing your snapshots
-All screenshots accumulate in the `snapshots/` folder in your repo's commit
-history — browsable anytime on GitHub, or `git pull` to get them locally.
-
-## Free tier limits (for reference)
-- **Public repos:** unlimited Actions minutes.
-- **Private repos:** 2,000 free minutes/month (GitHub Free plan). Each run
-  takes ~2-3 minutes, so a daily job uses roughly 60-90 minutes/month —
-  well within the free quota.
-
-## Things that can break this (same as before)
-- A cookie-consent banner or promo overlay on Deribit's page could cover the
-  table in the screenshot — check the first test run's image.
-- If any columns require being logged in, that needs an added session-login
-  step (not plain credentials in the file).
-- If Deribit changes their page's HTML structure, the `WAIT_SELECTOR` in
-  `snapshot.js` may need updating.
+## Notes
+- The script currently snapshots the **nearest upcoming expiry** each day.
+  If you want a specific expiry instead (e.g. always the weekly Friday one),
+  say so and the date-picking logic can be adjusted.
+- The visual design is an original recreation for readability — a styled
+  table inspired by the layout, not a pixel copy of Deribit's real site.
+- If Deribit ever changes their public API's response field names, the
+  script's data-parsing section may need small updates — the console log
+  in a failed Actions run will show exactly which API call failed.
+- Old troubleshooting notes from earlier setup attempts (workflow file
+  location issues, cookie banners, geo-block proxying) no longer apply to
+  this version, since it doesn't load the live website at all.
