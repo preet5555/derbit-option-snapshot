@@ -66,7 +66,7 @@ function fmtPct(n) {
   return `${Number(n).toFixed(1)}%`;
 }
 
-function buildHtml({ currency, underlyingPrice, expiryLabel, rows }) {
+function buildHtml({ currency, underlyingPrice, expiryLabel, rows, snapshotLabel }) {
   const rowsHtml = rows.map((r) => {
     const isAtm = r.isAtm;
     return `
@@ -177,7 +177,7 @@ function buildHtml({ currency, underlyingPrice, expiryLabel, rows }) {
     <div class="brand">D <span>Deribit</span> — ${currency} Options Snapshot</div>
     <div class="price-pill">${currency}: $${fmtInt(underlyingPrice)}</div>
   </div>
-  <div class="subheader">Expiry: ${expiryLabel} &nbsp;|&nbsp; Generated: ${new Date().toISOString()}</div>
+  <div class="subheader">Expiry: ${expiryLabel} &nbsp;|&nbsp; Snapshot type: ${snapshotLabel || 'manual'} &nbsp;|&nbsp; Generated: ${new Date().toISOString()}</div>
   <table>
     <thead>
       <tr>
@@ -259,11 +259,13 @@ async function takeSnapshot() {
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
   const dataset = await buildDataset();
+  dataset.snapshotLabel = process.env.SNAPSHOT_LABEL || 'manual';
   const html = buildHtml(dataset);
   fs.writeFileSync(HTML_TMP_PATH, html, 'utf-8');
 
+  const label = process.env.SNAPSHOT_LABEL || 'manual';
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const filename = `deribit-options-${timestamp}.png`;
+  const filename = `deribit-options-${label}-${timestamp}.png`;
   const filepath = path.join(OUTPUT_DIR, filename);
 
   console.log('Rendering HTML with headless browser...');
